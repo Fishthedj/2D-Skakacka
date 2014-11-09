@@ -10,8 +10,8 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 public class StatePanel extends JPanel implements GameStateManager, Runnable{
-    private static final int PHEIGHT = 400;
-    private static final int PWIDTH = 400;
+    public static final int PHEIGHT = 320;
+    public static final int PWIDTH = 240;
     private static final int NO_DELAYS_PER_YIELD = 16;
     private static final int MAX_FRAME_SKIPS = 5;    
     private volatile boolean running = false;
