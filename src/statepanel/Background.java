@@ -1,11 +1,9 @@
 package statepanel;
 
-
 import java.awt.image.BufferedImage;
 import java.awt.Graphics2D;
 
 public class Background {
-    private final Images images;
     private final BufferedImage image;
     private double x;
     private double y;
@@ -17,13 +15,12 @@ public class Background {
     private double yscale;
     
     private Background(Builder builder){
-        this.images = builder.images;
         this.xscale = builder.xscale;
         this.yscale = builder.yscale;
         this.dx = builder.dx;
         this.dy = builder.dy;
-        images.setSubdirectoryPath("Backgrounds/");
-        image = images.loadImage(builder.filename);
+        Images.setSubdirectoryPath("Backgrounds/");
+        image = Images.loadImage(builder.filename);
         width = image.getWidth();
         height = image.getHeight();
     }
@@ -77,16 +74,14 @@ public class Background {
     public static class Builder{
         //required parameters
         private final String filename;
-        private final Images images;
         //optional parameters
         private double xscale = 0.1;
         private double yscale = 0.1;
         private double dx = 0;
         private double dy = 0;
         
-        public Builder(String filename, Images images){
+        public Builder(String filename){
             this.filename = filename;
-            this.images = images;
         }
         public Builder xscale(int value){
             xscale = value;

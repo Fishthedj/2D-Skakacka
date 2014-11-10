@@ -8,21 +8,22 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
-public class Images {
-    private final static String IMAGE_DIR = "/Images/";
-    private String directoryPath;
-    private final GraphicsConfiguration gc;
+public final class Images {
+    private static final String IMAGE_DIR = "/Images/";
+    private static String directoryPath;
+    private static final GraphicsConfiguration gc;
     
-    public Images(){
+    static{
         gc = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
     }
+    private Images(){};
     
-    public void setSubdirectoryPath(String subdirectory){
-        this.directoryPath = IMAGE_DIR + subdirectory;
+    public static void setSubdirectoryPath(String subdirectory){
+        Images.directoryPath = IMAGE_DIR + subdirectory;
     }
-    public BufferedImage loadImage(String fileName){
+    public static BufferedImage loadImage(String fileName){
         try{
-            BufferedImage image = ImageIO.read(getClass().getResource(directoryPath + fileName));
+            BufferedImage image = ImageIO.read(Images.class.getResource(directoryPath + fileName));
             int transparency = image.getColorModel().getTransparency();
             BufferedImage copy = gc.createCompatibleImage(image.getWidth(), image.getHeight(), transparency);
             Graphics2D g2d = copy.createGraphics();
@@ -34,7 +35,7 @@ public class Images {
             return null;
         }
     }
-    public BufferedImage[] loadImageStripe(String filename, int numberOfImages){
+    public static BufferedImage[] loadImageStripe(String filename, int numberOfImages){
         BufferedImage strip;
         if(numberOfImages <= 0){
             System.out.println("numberOfImages <= 0");
