@@ -1,7 +1,8 @@
-package statepanel;
+package com.stikanek.pictures;
 
 import java.awt.image.BufferedImage;
 import java.awt.Graphics2D;
+import com.stikanek.mainclasses.StatePanel;
 
 public class Background {
     private final BufferedImage image;

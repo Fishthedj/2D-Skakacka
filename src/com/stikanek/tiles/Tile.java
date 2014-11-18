@@ -1,4 +1,4 @@
-package statepanel;
+package com.stikanek.tiles;
 
 import java.awt.image.BufferedImage;
 

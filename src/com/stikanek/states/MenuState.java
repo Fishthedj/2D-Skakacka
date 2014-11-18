@@ -1,7 +1,8 @@
-package statepanel;
+package com.stikanek.states;
 import javax.swing.JPanel;
 import javax.swing.JButton;
 import java.awt.Color;
+import com.stikanek.mainclasses.StatePanel;
 //import java.awt.event.ActionListener;
 //import java.awt.event.ActionEvent;
 
@@ -22,7 +23,7 @@ public class MenuState implements State{
         panel.revalidate();
         panel.repaint(); 
         panel.setBackground(Color.blue);
-        panel.add(btn);
+        panel.add(btn);        
     }
     @Override
     public void render(){

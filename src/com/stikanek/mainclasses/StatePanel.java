@@ -1,4 +1,8 @@
-package statepanel;
+package com.stikanek.mainclasses;
+import com.stikanek.states.GameState;
+import com.stikanek.states.State;
+import com.stikanek.states.MenuState;
+import com.stikanek.states.GameStateManager;
 import javax.swing.JPanel;
 import java.awt.Dimension;
 import java.awt.Color;
@@ -23,13 +27,14 @@ public class StatePanel extends JPanel implements GameStateManager, Runnable{
 //    private Image dbImage = null;
     private volatile boolean gameOver = false;
     private volatile boolean isPaused = false;   
-    private int period;
+    private final int period;
     
     public StatePanel(){
+        period = 100000000;
         gameState = new GameState(this, PWIDTH, PHEIGHT);
         menuState = new MenuState(this);
-        setBackground(Color.white);
-        setPreferredSize(new Dimension(PHEIGHT, PWIDTH));
+//        setBackground(Color.white);
+//        setPreferredSize(new Dimension(PWIDTH, PHEIGHT));
         setFocusable(true);
         requestFocus();
         init();
@@ -55,13 +60,13 @@ public class StatePanel extends JPanel implements GameStateManager, Runnable{
            } 
         });
     }
-//   @Override
-//   public Dimension getPreferredSize(){
-//       return new Dimension(PWIDTH, PHEIGHT);
-//   }
+   @Override
+   public Dimension getPreferredSize(){
+       return new Dimension(PWIDTH, PHEIGHT);
+   }
     private void testPress(int x, int y){
         if(!isPaused && !gameOver){
-            
+            System.out.println(x + " " + y);
         }
     }   
     private void init(){

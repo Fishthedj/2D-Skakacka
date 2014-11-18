@@ -1,4 +1,4 @@
-package statepanel;
+package com.stikanek.pictures;
 //Class for loading single images and image stripes
 
 import java.awt.Graphics2D;

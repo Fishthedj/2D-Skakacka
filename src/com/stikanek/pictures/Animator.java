@@ -1,4 +1,4 @@
-package statepanel;
+package com.stikanek.pictures;
 
 import java.awt.image.BufferedImage;
 

@@ -1,4 +1,4 @@
-package statepanel;
+package com.stikanek.states;
 
 public interface State {
     void update();
