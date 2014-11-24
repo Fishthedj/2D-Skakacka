@@ -6,26 +6,29 @@ import java.awt.Image;
 import javax.swing.JButton;
 import com.stikanek.pictures.Background;
 import com.stikanek.mainclasses.StatePanel;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class GameState implements State{
     private final StatePanel panel;
     private final int pWidth;
     private final int pHeight;
-    private final JButton btn = new JButton();
     private Image dbImage = null;
     private Graphics dbg;
     private final Background mountains;
     private final Background sky;
     private final Background clouds;
+    private final Logger logger;
     
-    public GameState(StatePanel jpanel, int pWidth, int pHeight){
+    public GameState(StatePanel jpanel, int pWidth, int pHeight, Logger l){
         this.panel = jpanel;
         this.pWidth = pWidth;
         this.pHeight = pHeight;
-//        btn.addActionListener(e->panel.setState(panel.getMenuState()));
+        this.logger = l;
         mountains = new Background.Builder("mountains.gif").dx(1).build();
         sky = new Background.Builder("sky.gif").build();
         clouds = new Background.Builder("clouds.gif").dx(1.5).build();        
+        l.log(Level.INFO,"Images loaded.");
     }
     
     @Override
@@ -48,7 +51,7 @@ public class GameState implements State{
 //            dbImage = panel.createImage(panel.getWidth(), panel.getHeight());
         }
         if(dbImage == null){
-            System.out.println("dbImage is null");
+            logger.severe("dbImage is null");
             return;
         }else{
             dbg = dbImage.getGraphics();
@@ -75,7 +78,7 @@ public class GameState implements State{
             if(g != null)
                 g.dispose();
         }catch(Exception e){
-            System.out.println("Graphics exception " + e);
+            logger.log(Level.SEVERE,"Graphics exception {0}",e);
         }
     }
 }

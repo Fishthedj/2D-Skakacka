@@ -1,34 +1,44 @@
 package com.stikanek.states;
-import javax.swing.JPanel;
+
 import javax.swing.JButton;
 import java.awt.Color;
 import com.stikanek.mainclasses.StatePanel;
-//import java.awt.event.ActionListener;
-//import java.awt.event.ActionEvent;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public class MenuState implements State{
+public class MenuState implements State {
+
     private final StatePanel panel;
     private final JButton btn = new JButton();
-    
-    public MenuState(StatePanel jpanel){
+    private final Logger logger;
+
+    public MenuState(StatePanel jpanel, Logger l) {
         this.panel = jpanel;
-        btn.addActionListener(e->panel.setState(panel.getGameState()));
+        this.logger = l;
+        btn.addActionListener(e -> {
+            logger.log(Level.INFO, "Menu button clicked. Switching to GameState.");
+            panel.setState(panel.getGameState());
+        });
     }
-    
+
     @Override
-    public void update(){}
+    public void update() {
+    }
+
     @Override
-    public void entered(){
+    public void entered() {
         panel.removeAll();
         panel.revalidate();
-        panel.repaint(); 
+        panel.repaint();
         panel.setBackground(Color.blue);
-        panel.add(btn);        
+        panel.add(btn);
     }
+
     @Override
-    public void render(){
+    public void render() {
     }
+
     @Override
-    public void paintScreen(){
+    public void paintScreen() {
     }
 }
