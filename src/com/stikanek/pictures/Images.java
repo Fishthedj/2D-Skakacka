@@ -9,7 +9,7 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 
 public final class Images {
-    private static final String IMAGE_DIR = "/Images/";
+    private static final String IMAGE_DIR = "/com/stikanek/images/";
     private static String directoryPath;
     private static final GraphicsConfiguration gc;
     

@@ -12,5 +12,11 @@ public class Tile {
     }
     public enum TileType{
         NONBLOCKING, BLOCKING;
+    }
+    public BufferedImage getImage(){
+        return image;
+    }
+    public TileType getType(){
+        return type;
     }    
 }

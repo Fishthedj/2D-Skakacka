@@ -1,10 +1,11 @@
 package com.stikanek.states;
 
-import javax.swing.JButton;
-import java.awt.Color;
 import com.stikanek.mainclasses.StatePanel;
+import java.awt.Color;
+import java.awt.event.KeyEvent;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JButton;
 
 public class MenuState implements State {
 
@@ -40,5 +41,13 @@ public class MenuState implements State {
 
     @Override
     public void paintScreen() {
+    }
+    
+    @Override
+    public void processKeyPressed(KeyEvent e){   
+    }
+    
+    @Override
+    public void processKeyReleased(KeyEvent e){
     }
 }

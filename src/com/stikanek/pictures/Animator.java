@@ -33,6 +33,10 @@ public class Animator {
             timesPlayed++;
         }
     }
+    public void reset(){
+        currentFrame = 0;
+    }
+    
     public BufferedImage getCurrentImage(){
         return frames[currentFrame];
     }

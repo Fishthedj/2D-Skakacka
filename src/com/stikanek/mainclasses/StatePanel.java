@@ -19,6 +19,7 @@ public class StatePanel extends JPanel implements GameStateManager, Runnable {
 
     public static final int PWIDTH = 320;
     public static final int PHEIGHT = 240;
+    public static final int SCALE = 2;
     private static final int NO_DELAYS_PER_YIELD = 16;
     private static final int MAX_FRAME_SKIPS = 5;
     private volatile boolean running = false;
@@ -58,21 +59,26 @@ public class StatePanel extends JPanel implements GameStateManager, Runnable {
         addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
+                currentState.processKeyPressed(e);
                 int keyCode = e.getKeyCode();
                 if (keyCode == KeyEvent.VK_ESCAPE
                         || keyCode == KeyEvent.VK_Q
-                        || keyCode == KeyEvent.VK_END
-                        || keyCode == KeyEvent.VK_ESCAPE && e.isControlDown()) {
+                        || keyCode == KeyEvent.VK_END) {
                     logger.log(Level.INFO, "End key pressed. Key code: {0}", keyCode);
                     running = false;
                 }
+            }
+            
+            @Override
+            public void keyReleased(KeyEvent e){
+                    currentState.processKeyReleased(e);
             }
         });
     }
 
     @Override
     public Dimension getPreferredSize() {
-        return new Dimension(PWIDTH, PHEIGHT);
+        return new Dimension(SCALE * PWIDTH, SCALE * PHEIGHT);
     }
 
     private void testPress(int x, int y) {
