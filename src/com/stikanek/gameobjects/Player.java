@@ -12,7 +12,6 @@ public class Player {
     public enum State{
         STANDING_LEFT, STANDING_RIGHT, STARTED_RUNNING_RIGHT, STARTED_RUNNING_LEFT, RUNNING_RIGHT, RUNNING_LEFT
     }
-    private int xOnScreen;
     private int xOnMap;
     private int y;
     private int dx;
@@ -22,7 +21,7 @@ public class Player {
     private boolean right;
     private boolean up;
     private boolean down;
-    private final TileMap map;
+    private final int mapWidth;
     private final Animator runningRightAnimator;
     private final Animator runningLeftAnimator;
     private final BufferedImage[] runningRightFrames;
@@ -33,12 +32,11 @@ public class Player {
     private final BufferedImage startedRunningLeftImage;
     private State currentState;
 
-    public Player(int xOnScreen, int yOnScreen, int speed, TileMap map) {
-        this.xOnScreen = xOnScreen;
-        xOnMap = xOnScreen;
+    public Player(int xOnMap, int yOnScreen, int speed, int mapWidth) {
+        this.xOnMap = xOnMap;
         this.y = yOnScreen;
         this.speed = speed;
-        this.map = map;
+        this.mapWidth = mapWidth;
         Images.setSubdirectoryPath("sprites/");
         runningRightFrames = Images.loadImageStripe("runningRight.gif", 13);
         runningLeftFrames = Images.loadImageStripe("runningLeft.gif", 13);
@@ -66,20 +64,31 @@ public class Player {
     public int getXOnMap(){
         return xOnMap;
     }
-
+    
+    public void setXOnMap(int x){
+        xOnMap = x;
+    }
+    
+    public int getXOnScreen(){
+        int screenWidth = StatePanel.PWIDTH;
+        if(xOnMap < screenWidth / 2)
+            return xOnMap;
+        else if(xOnMap > mapWidth - screenWidth / 2){
+            return screenWidth - mapWidth + xOnMap;
+        }
+        else
+            return screenWidth / 2;
+    }
+    
     public void update() {
-        int mapWidth = map.getMapWidth();
         boolean isNearLeftEdge = xOnMap <= StatePanel.PWIDTH / 2;
         boolean willBeNearLeftEdge = xOnMap - speed <= StatePanel.PWIDTH / 2;
         boolean isNearRightEdge = xOnMap >= mapWidth - StatePanel.PWIDTH / 2;
         if(left){
             if(isNearLeftEdge || willBeNearLeftEdge){
-//                xOnScreen = xOnMap = (xOnMap - speed >= 0)? xOnMap - speed : 0;
-                xOnScreen = (xOnScreen - speed >= 0)? xOnScreen - speed : 0;
                 xOnMap = (xOnMap - speed >= 0)? xOnMap - speed : 0;
             }else if(isNearRightEdge){
                 xOnMap -= speed;
-                xOnScreen -= speed;
             }else{
                 xOnMap -= speed;
             }
@@ -104,11 +113,9 @@ public class Player {
         }
         if(right){
             if(isNearLeftEdge){
-                xOnScreen += speed;
                 xOnMap += speed;
             }else if(isNearRightEdge){
                 xOnMap = (xOnMap + speed >= mapWidth)? mapWidth : xOnMap + speed;
-                xOnScreen = (xOnScreen + speed >= StatePanel.PWIDTH)? StatePanel.PWIDTH : xOnScreen + speed;
             }else{
                 xOnMap += speed;
             }
@@ -136,22 +143,22 @@ public class Player {
     public void draw(Graphics2D g){
         switch(currentState){
             case STANDING_RIGHT:
-                g.drawImage(standingRightImage, xOnScreen, y, null);
+                g.drawImage(standingRightImage, getXOnScreen(), y, null);
                 break;
             case STANDING_LEFT:
-                g.drawImage(standingLeftImage, xOnScreen, y, null);
+                g.drawImage(standingLeftImage, getXOnScreen(), y, null);
                 break;
             case STARTED_RUNNING_LEFT:
-                g.drawImage(startedRunningLeftImage, xOnScreen, y, null);
+                g.drawImage(startedRunningLeftImage, getXOnScreen(), y, null);
                 break;
             case STARTED_RUNNING_RIGHT:
-                g.drawImage(startedRunningRightImage, xOnScreen, y, null);                
+                g.drawImage(startedRunningRightImage, getXOnScreen(), y, null);                
                 break;
             case RUNNING_LEFT:
-                g.drawImage(runningLeftAnimator.getCurrentImage(), xOnScreen, y, null);
+                g.drawImage(runningLeftAnimator.getCurrentImage(), getXOnScreen(), y, null);
                 break;
             case RUNNING_RIGHT:
-                g.drawImage(runningRightAnimator.getCurrentImage(), xOnScreen, y, null);
+                g.drawImage(runningRightAnimator.getCurrentImage(), getXOnScreen(), y, null);
                 break;
         }
     }

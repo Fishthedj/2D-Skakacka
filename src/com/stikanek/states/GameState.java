@@ -12,6 +12,10 @@ import com.stikanek.mainclasses.StatePanel;
 import com.stikanek.gameobjects.Player;
 import java.awt.event.KeyEvent;
 
+/**
+ *
+ * @author Pavel
+ */
 public class GameState implements State{
     private final StatePanel panel;
     private final int pWidth;
@@ -36,7 +40,7 @@ public class GameState implements State{
         map = new TileMap(5);
         map.loadTileMap("/com/stikanek/map.txt");
         map.loadTiles("grasstileset.gif");
-        player = new Player(pWidth / 2, 160, 10, map);
+        player = new Player(pWidth / 2, 160, 10, map.getMapWidth());
         l.log(Level.INFO,"Images loaded.");
     }
     

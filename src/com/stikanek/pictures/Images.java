@@ -1,5 +1,4 @@
 package com.stikanek.pictures;
-//Class for loading single images and image stripes
 
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
@@ -8,6 +7,12 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 
+/**
+ * This class provides static methods for setting directory to be read from and for loading images. To use these methods you
+ * should first set the subdirectory path via <code>setSubdirectoryPath(String)</code> method. Single images can be read as well as
+ * image stripes which are subsequently cut into frames with same height and width.
+ * @author Pavel
+ */
 public final class Images {
     private static final String IMAGE_DIR = "/com/stikanek/images/";
     private static String directoryPath;
@@ -18,6 +23,10 @@ public final class Images {
     }
     private Images(){};
     
+    /**
+     * Appends the subdirectory string to the directory path.
+     * @param subdirectory 
+     */
     public static void setSubdirectoryPath(String subdirectory){
         Images.directoryPath = IMAGE_DIR + subdirectory;
     }

@@ -9,6 +9,11 @@ import java.io.InputStreamReader;
 import com.stikanek.tiles.Tile.TileType;
 import com.stikanek.pictures.Images;
 
+/**
+ * The <code>TileMap</code> class enables user to load <code>TileMap</code> configuration file and images for
+ * individual Tiles. It has methods for updating current position and for drawing this <code>TileMap</code>. 
+ * @author Pavel
+ */
 public class TileMap {
 
     private int[][] map;
@@ -22,13 +27,15 @@ public class TileMap {
     private int tileOffsetX;
     private int tilesToDrawX;
     private int currentX, currentY;
-    private boolean left;
-    private boolean right;
     private final int speed;
     private int maxMapMovementToRight;
     private final int maxMapMovementToLeft = 0;
 //    private boolean isNearEnd;
 
+    /**
+     * Constructs a <code>TileMap</code> with <code>tilesInTileset</code> number of tiles.
+     * @param tilesInTileset number of tiles in used TileSet
+     */
     public TileMap(int tilesInTileset) {
         this.tilesInTileset = tilesInTileset;
         tiles = new Tile[tilesInTileset];
@@ -36,23 +43,27 @@ public class TileMap {
         currentX = currentY = 0;
         speed = 10;
     }
-
-    public void setLeft(boolean b) {
-        left = b;
-    }
-
-    public void setRight(boolean b) {
-        right = b;
-    }
-
+    
+    /**
+     * Returns width of the whole map in pixels.
+     * @return the width of this map
+     */
     public int getMapWidth() {
         return tileWidth * colsInMap;
     }
 
+    /**
+     * Returns whether or not the current position of the map reached its boundaries.
+     * @return <code>true</code> if the current position of the map is in its leftmost or rightmost position; false otherwise.
+     */
     public boolean isNearEdges() {
         return (currentX <= maxMapMovementToLeft) || (currentX >= maxMapMovementToRight);
     }
 
+    /**
+     * Loads TileMap configuration file from the file specified by <code>file</code> String.
+     * @param file the name of the file to be read from
+     */
     public void loadTileMap(String file) {
         InputStream is = getClass().getResourceAsStream(file);
         BufferedReader br = new BufferedReader(new InputStreamReader(is));
@@ -74,6 +85,10 @@ public class TileMap {
         }
     }
 
+    /**
+     * Loads tile images from the file specified by <code>file</code> String.
+     * @param file the name of the file to be read from
+     */
     public void loadTiles(String file) {
         Images.setSubdirectoryPath("tilesets/");
         BufferedImage[] tileImages = Images.loadImageStripe(file, tilesInTileset);
@@ -85,6 +100,12 @@ public class TileMap {
         maxMapMovementToRight = tileWidth * (colsInMap - tilesToDrawX);
     }
 
+    /**
+     * Sets the current x-coordinate position of this TileMap to <code>x</code>. The x-coordinate is the value of the 
+     * leftmost visible point of the map.
+     * 
+     * @param x the x coordinate of the left point of this TileMap
+     */
     public void update(int x) {
         currentX = (x <= maxMapMovementToLeft) ? maxMapMovementToLeft : x;
         if (x <= maxMapMovementToLeft) {
@@ -96,6 +117,11 @@ public class TileMap {
         }
     }
 
+    /**
+     * Draws visible tiles depending on the current value of <code>x</code>.
+     * @param g Graphics object used to draw this TileMap
+     * @see Graphics2D
+     */
     public void draw(Graphics2D g) {
         int currentTile = 0;
         int firstTileToDraw = currentX / tileWidth;
