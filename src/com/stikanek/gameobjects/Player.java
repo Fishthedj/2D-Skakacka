@@ -6,10 +6,13 @@ import com.stikanek.tiles.TileMap;
 import com.stikanek.pictures.Animator;
 import com.stikanek.pictures.Images;
 import com.stikanek.mainclasses.StatePanel;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Player {
 
-    public enum State{
+    public enum State {
+
         STANDING_LEFT, STANDING_RIGHT, STARTED_RUNNING_RIGHT, STARTED_RUNNING_LEFT, RUNNING_RIGHT, RUNNING_LEFT
     }
     private int xOnMap;
@@ -22,6 +25,8 @@ public class Player {
     private boolean up;
     private boolean down;
     private final int mapWidth;
+    private final int width;
+//    private final TileMap map;
     private final Animator runningRightAnimator;
     private final Animator runningLeftAnimator;
     private final BufferedImage[] runningRightFrames;
@@ -50,18 +55,23 @@ public class Player {
         standingLeftImage = Images.loadImage("standingLeft.gif");
         startedRunningRightImage = Images.loadImage("startedRunningRight.gif");
         startedRunningLeftImage = Images.loadImage("startedRunningLeft.gif");
+        width = getMaxWidthFromImages();
         currentState = State.STANDING_RIGHT;
     }
-    public void setCurrentState(State state){
+
+    public void setCurrentState(State state) {
         currentState = state;
     }
+
     public void setLeft(boolean b) {
         left = b;
     }
-    public void setRight(boolean b){
+
+    public void setRight(boolean b) {
         right = b;
     }
-    public int getXOnMap(){
+
+    public int getXOnMap() {
         return xOnMap;
     }
     
@@ -84,15 +94,15 @@ public class Player {
         boolean isNearLeftEdge = xOnMap <= StatePanel.PWIDTH / 2;
         boolean willBeNearLeftEdge = xOnMap - speed <= StatePanel.PWIDTH / 2;
         boolean isNearRightEdge = xOnMap >= mapWidth - StatePanel.PWIDTH / 2;
-        if(left){
-            if(isNearLeftEdge || willBeNearLeftEdge){
-                xOnMap = (xOnMap - speed >= 0)? xOnMap - speed : 0;
-            }else if(isNearRightEdge){
+        if (left) {
+            if (isNearLeftEdge || willBeNearLeftEdge) {
+                xOnMap = (xOnMap - speed >= 0) ? xOnMap - speed : 0;
+            } else if (isNearRightEdge) {
                 xOnMap -= speed;
             }else{
                 xOnMap -= speed;
             }
-            switch(currentState){
+            switch (currentState) {
                 case STANDING_RIGHT:
                     currentState = State.STANDING_LEFT;
                     break;
@@ -111,15 +121,16 @@ public class Player {
                     break;
             }
         }
-        if(right){
-            if(isNearLeftEdge){
+
+        if (right) {
+            if (isNearLeftEdge) {
                 xOnMap += speed;
-            }else if(isNearRightEdge){
+            }else if(isNearRightEdge) {
                 xOnMap = (xOnMap + speed >= mapWidth)? mapWidth : xOnMap + speed;
-            }else{
+            } else {
                 xOnMap += speed;
             }
-            switch(currentState){
+            switch (currentState) {
                 case STANDING_LEFT:
                     currentState = State.STANDING_RIGHT;
                     break;
@@ -136,12 +147,12 @@ public class Player {
                 case RUNNING_LEFT:
                     currentState = State.STANDING_RIGHT;
                     break;
-            }            
+            }
         }
     }
-    
-    public void draw(Graphics2D g){
-        switch(currentState){
+
+    public void draw(Graphics2D g) {
+        switch (currentState) {
             case STANDING_RIGHT:
                 g.drawImage(standingRightImage, getXOnScreen(), y, null);
                 break;
@@ -162,4 +173,24 @@ public class Player {
                 break;
         }
     }
+
+    /**
+     * Returns max width of player from all images used to represent him.
+     */
+    private int getMaxWidthFromImages() {
+        ArrayList<BufferedImage> allImages = new ArrayList<BufferedImage>();
+        allImages.add(standingLeftImage);
+        allImages.add(standingRightImage);
+        allImages.add(startedRunningLeftImage);
+        allImages.add(startedRunningRightImage);
+        allImages.addAll(Arrays.asList(runningLeftFrames));
+        allImages.addAll(Arrays.asList(runningRightFrames));
+        int maxWidth = 0;
+        for (BufferedImage image : allImages) 
+            if (maxWidth < image.getWidth()) 
+                maxWidth = image.getWidth();
+
+        return maxWidth;
+    }
+
 }
