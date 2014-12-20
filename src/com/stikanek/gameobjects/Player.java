@@ -92,10 +92,10 @@ public class Player {
     
     public void update() {
         boolean isNearLeftEdge = xOnMap <= StatePanel.PWIDTH / 2;
-        boolean willBeNearLeftEdge = xOnMap - speed <= StatePanel.PWIDTH / 2;
+//        boolean willBeNearLeftEdge = xOnMap - speed <= StatePanel.PWIDTH / 2;
         boolean isNearRightEdge = xOnMap >= mapWidth - StatePanel.PWIDTH / 2;
         if (left) {
-            if (isNearLeftEdge || willBeNearLeftEdge) {
+            if (isNearLeftEdge) {
                 xOnMap = (xOnMap - speed >= 0) ? xOnMap - speed : 0;
             } else if (isNearRightEdge) {
                 xOnMap -= speed;

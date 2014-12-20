@@ -50,8 +50,8 @@ public class GameState implements State{
             mountains.update();
         sky.update();
         clouds.update();
-        map.update(player.getXOnMap() - pWidth / 2);
         player.update();
+        map.update(player.getXOnMap() - pWidth / 2);
     }
     @Override
     public void entered(){
