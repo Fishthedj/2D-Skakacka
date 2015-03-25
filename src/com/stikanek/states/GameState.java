@@ -1,5 +1,7 @@
 package com.stikanek.states;
 import com.stikanek.tiles.TileMap;
+import com.stikanek.math.Vec2;
+import com.stikanek.collisions.Collisions;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -28,6 +30,7 @@ public class GameState implements State{
     private final Logger logger;
     private final TileMap map;
     private final Player player;
+    private final Collisions collisions;
     
     public GameState(StatePanel jpanel, int pWidth, int pHeight, Logger l){
         this.panel = jpanel;
@@ -37,21 +40,26 @@ public class GameState implements State{
         mountains = new Background.Builder("mountains.gif").build();
         sky = new Background.Builder("sky.gif").build();
         clouds = new Background.Builder("clouds.gif").dx(-0.5).build(); 
-        map = new TileMap(5);
+        map = new TileMap(5, pHeight);
         map.loadTileMap("/com/stikanek/map.txt");
         map.loadTiles("grasstileset.gif");
-        player = new Player(pWidth / 2, 160, 10, map.getMapWidth());
+        player = new Player(pWidth / 2, 290, 5, map.getMapWidth(), map.getMapHeight(), pHeight);
+        collisions = new Collisions(map);
         l.log(Level.INFO,"Images loaded.");
     }
     
     @Override
     public void update(){
-        if(!map.isNearEdges())
+        if(!map.isNearEdgesHorizontally())
             mountains.update();
         sky.update();
         clouds.update();
-        player.update();
-        map.update(player.getXOnMap() - pWidth / 2);
+//        System.out.println(collisions);
+        Vec2 maximumMovement = new Vec2(collisions.getMaximumPossibleMovement(player));
+        System.out.println("maxmovement x: " + maximumMovement.getX());//delete
+        System.out.println("maxmovement y: " + maximumMovement.getY());//delete
+        player.update(maximumMovement);//parameters providing maximum movement for x and y coordinate
+        map.update(player.getXOnMap() - pWidth / 2, player.getYOnMap());
     }
     @Override
     public void entered(){
@@ -109,6 +117,10 @@ public class GameState implements State{
             mountains.setVector(1.0, 0);
             player.setLeft(true);
         }      
+        if(e.getKeyCode() == KeyEvent.VK_UP)
+            player.setUp(true);
+        if(e.getKeyCode() == KeyEvent.VK_DOWN)
+            player.setDown(true);        
     }
     
     @Override
@@ -122,6 +134,10 @@ public class GameState implements State{
            player.setRight(false);
            player.setCurrentState(Player.State.STANDING_RIGHT);
            mountains.setVector(0,0);
-       }        
+       }
+        if(e.getKeyCode() == KeyEvent.VK_UP)
+            player.setUp(false);
+        if(e.getKeyCode() == KeyEvent.VK_DOWN)
+            player.setDown(false);       
     }
 }

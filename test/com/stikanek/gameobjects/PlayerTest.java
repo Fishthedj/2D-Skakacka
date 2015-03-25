@@ -17,7 +17,7 @@ public class PlayerTest {
     @Test
     public void testGetXOnScreen() {
         System.out.println("getXOnScreen");
-        Player instance = new Player(10, 16, 2, 840);
+        Player instance = new Player(10, 16, 2, 840, 800, 320);
         int expResult = 10;
         int result = instance.getXOnScreen();
         assertEquals(expResult, result);
