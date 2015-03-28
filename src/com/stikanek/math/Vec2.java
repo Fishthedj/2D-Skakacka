@@ -104,7 +104,7 @@ public class Vec2 {
     
     public Vec2 maxTo(Vec2 v){
         x = Math.max(x, v.x);
-        y = Math.min(y, v.y);
+        y = Math.max(y, v.y);
         return this;
     }
     

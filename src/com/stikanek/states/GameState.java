@@ -58,6 +58,7 @@ public class GameState implements State{
         Vec2 maximumMovement = new Vec2(collisions.getMaximumPossibleMovement(player));
         System.out.println("maxmovement x: " + maximumMovement.getX());//delete
         System.out.println("maxmovement y: " + maximumMovement.getY());//delete
+        System.out.println("-----------------------------------------");
         player.update(maximumMovement);//parameters providing maximum movement for x and y coordinate
         map.update(player.getXOnMap() - pWidth / 2, player.getYOnMap());
     }

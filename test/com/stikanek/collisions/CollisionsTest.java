@@ -149,6 +149,11 @@ public class CollisionsTest {
         }
         
         @Override
+        public AABB getPredictedAABB(){
+            //incorrect implementation
+            return this.aabb;
+        }
+        @Override
         public Vec2 getCurrentDirection(){
             return direction;
         }

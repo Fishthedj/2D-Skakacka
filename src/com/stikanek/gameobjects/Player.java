@@ -136,6 +136,11 @@ public class Player extends MovingObject {
     }
     
     @Override
+    public AABB getPredictedAABB(){
+        return new AABB(getPredictedCenterPosition(), aabb.getHalfExtent());
+    }
+    
+    @Override
     public Vec2 getCurrentDirection(){
         Vec2 currentDirection = new Vec2();
         if(right)
