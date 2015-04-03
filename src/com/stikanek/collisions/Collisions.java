@@ -17,58 +17,59 @@ public class Collisions {
     public Collisions(TileMap map){
         this.map = map;
     }
+    
+    public Vec2 getMaximumMovement(MovingObject mo){
+        Vec2 adjustedMaxMovement = getMaximumPossibleMovement(mo);
+        Vec2 originalDirection = mo.getDirection();
+        Vec2 maxMovementWithZeroY;
+        Vec2 maxMovementWithZeroX;       
+        if(adjustedMaxMovement.getY() == 0){
+            mo.setDirection(new Vec2(originalDirection.getX(), 0));
+            maxMovementWithZeroY = getMaximumPossibleMovement(mo);
+            mo.setDirection(originalDirection);
+            if(maxMovementWithZeroY.getX() != 0)
+                return maxMovementWithZeroY;
+        }
+        if(adjustedMaxMovement.getX() == 0){
+            mo.setDirection(new Vec2(0, originalDirection.getY()));
+            maxMovementWithZeroX = getMaximumPossibleMovement(mo);
+            mo.setDirection(originalDirection);
+            if(maxMovementWithZeroX.getY() != 0)
+                return maxMovementWithZeroX;
+        }
+            return adjustedMaxMovement;
+    }
+    
     public Vec2 getMaximumPossibleMovement(MovingObject mo){
-//        maximumMovement = mo.getDirection(); PICOVINA
         maximumMovement = mo.getCurrentDirection();
         Vec2 tempMaximumMovement = new Vec2(maximumMovement);
         Vec2 currentPosition = mo.getCurrentCenterPosition();
-        System.out.println("currentpos x: " + currentPosition.getX());//DELETE
-        System.out.println("currentpos y: " + currentPosition.getY());//DELETE
         Vec2 predictedPosition = mo.getPredictedCenterPosition();
-        System.out.println("predictedpos x: " + predictedPosition.getX());
-        System.out.println("predictedpos y: " + predictedPosition.getY());
         Vec2 min = currentPosition.min(predictedPosition);//upper-left position of collision area
-//        System.out.println("min x: " + min.getX() + "min y: " + min.getY());
         Vec2 max = currentPosition.max(predictedPosition);//lower-right position of collision area
-//        System.out.println("max x: " + max.getX() + "max y: " + max.getY());
         
-        //TODO: addTo halfExtent max, subFrom halfExtent min
         min.addTo(mo.getAabb().getHalfExtent().getNegation());
         min.addTo(new Vec2(1,1));
-//        System.out.println("minx: " + min.getX());//DELETE
-//        System.out.println("miny: " + min.getY());//DELETE
         max.addTo(mo.getAabb().getHalfExtent());
         max.addTo(new Vec2(-1,-1));
-//        System.out.println("halfext x: " + mo.getAabb().getHalfExtent().getX() + " y: " + mo.getAabb().getHalfExtent().getY());
-        System.out.println("maxx: " + max.getX());//DELETE  
-        System.out.println("maxy: " + max.getY());//DELETE
         
         //get tiles in collision area
         int firstTileX = map.worldCoordToTileX(min.getX());
         int firstTileY = map.worldCoordToTileY(min.getY());
-//        System.out.println("firstTileX: " + firstTileX); //DELETE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//        System.out.println("firstTileY: " + firstTileY);//DELETE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         
         int lastTileX = map.worldCoordToTileX(max.getX());
         int lastTileY = map.worldCoordToTileY(max.getY());
-//        System.out.println("lastTileX: " + lastTileX); //DELETE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-//        System.out.println("lastTileY: " + lastTileY);//DELETE @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@    
         
         //for all tiles in collision area
         for(int row = firstTileY; row <= lastTileY; row++){
             for(int column = firstTileX; column <= lastTileX; column++){
                 if(map.getTileType(row, column) == TileType.BLOCKING){
                     Vec2 center = new Vec2(map.tileCoordToWorldX(column),map.tileCoordToWorldY(row));
-                    System.out.println("tile x: " + map.tileCoordToWorldX(column) + " y: " + map.tileCoordToWorldY(row));
                     Vec2 halfExtent = new Vec2(map.getTileWidth() / 2, map.getTileHeight() / 2);
                     CollisionTile collisionTile = new CollisionTile(center, halfExtent);
                     CollisionParams collisionParams = willCollide(mo, collisionTile);
-                    System.out.println("row: " + row);
-                    System.out.println("column: " + column);
+
                     if(collisionParams.collided){
-//                        System.out.println("Maximum movement x: " + collisionParams.getMaximumMovement().getX() +
-//                                " y: " + collisionParams.getMaximumMovement().getY());
-//                        maximumMovement = collisionParams.getMaximumMovement();
                         if(Math.abs(collisionParams.getMaximumMovement().getX()) < Math.abs(tempMaximumMovement.getX()))
                             tempMaximumMovement.setX(collisionParams.getMaximumMovement().getX());
                         if(Math.abs(collisionParams.getMaximumMovement().getY()) < Math.abs(tempMaximumMovement.getY()))
@@ -80,7 +81,7 @@ public class Collisions {
 //        return maximumMovement;
         return tempMaximumMovement;
     }
-    
+        
     private class CollisionTile extends StaticObject{
         public CollisionTile(Vec2 center, Vec2 halfExtent){
             this.center = center;
@@ -102,43 +103,45 @@ public class Collisions {
         Vec2 expandedCenter = aabbscnd.getCenter();
         Vec2 centersDifference = expandedCenter.sub(aabbfst.getCenter());       
         Vec2 normalPlane = centersDifference.getMajorAxis().getNegationTo();
-        System.out.println("normalPlane x: " + normalPlane.getX() + " y: " + normalPlane.getY());
+        Vec2 minorNormalPlane = centersDifference.getMinorAxis().getNegationTo();
         int distance = getDifferenceFromPointToPlane(normalPlane, expandedCenter, expandedExtent, aabbfst.getCenter());
-        AabbToAabbParameters positionParameters = new AabbToAabbParameters(distance, normalPlane);
+        int minorDistance = getDifferenceFromPointToPlane(minorNormalPlane, expandedCenter, expandedExtent, aabbfst.getCenter());
+        AabbToAabbParameters positionParameters = new AabbToAabbParameters(distance, minorDistance, normalPlane, minorNormalPlane);
         return positionParameters;
     }
     
     public int getDifferenceFromPointToPlane(Vec2 normalPlane, Vec2 aabbCenter, Vec2 aabbHalfExtent, Vec2 point){
         Vec2 planeCenter = normalPlane.mul(aabbHalfExtent).addTo(aabbCenter);
         Vec2 planeToPointDifference = point.sub(planeCenter);
-        System.out.println("planeToPointDifference x: " + planeToPointDifference.getX() + "y: " + planeToPointDifference.getY());
         int difference = planeToPointDifference.dotProduct(normalPlane);
-        System.out.println("difference: " + difference);
-//        int difference = Math.abs(planeToPointDifference.getX()) > 0 ? planeToPointDifference.getX() : planeToPointDifference.getY();
         return difference;
     }
          
     public CollisionParams checkCollision(MovingObject movingObject, AabbToAabbParameters pointToPlaneParams){
         CollisionParams collisionParams = new CollisionParams(false, movingObject.getCurrentDirection());
         int difference = pointToPlaneParams.getDistance();
-        int speedInDirectionOfNormalPlane = getSpeedInDirectionOfNormalPlane(movingObject, pointToPlaneParams);
-        System.out.println("speedInDirectionOfNormalPlane: " + speedInDirectionOfNormalPlane);
-//        if((Math.abs(speedInDirectionOfNormalPlane) >= Math.abs(difference)) && (Math.signum(difference) != Math.signum(speedInDirectionOfNormalPlane))){
-        if(Math.signum(difference) == -1){
-            collisionParams.setCollided(true);
-            System.out.println("collided");
+        boolean collidedMajorPlane = Math.signum(difference) == -1;
+        if(collidedMajorPlane){
             if(pointToPlaneParams.getPlaneCenter().getX() == 0){
                 collisionParams.setMaximumMovementY(Math.signum(movingObject.getCurrentDirection().getY()) == 1.0? 
                         movingObject.getCurrentDirection().getY() + difference : movingObject.getCurrentDirection().getY() - difference);
-                System.out.println("collisionParams x: " + collisionParams.getMaximumMovement().getX() + " y: " + collisionParams.getMaximumMovement().getY());
-                    //collisionParams.setMaximumMovementY(-difference);//movingObject.getDirection().getY() + difference
             }else{
-                    //collisionParams.setMaximumMovementX(-difference);//movingObject.getDirection().getX() + difference
                 collisionParams.setMaximumMovementX(Math.signum(movingObject.getCurrentDirection().getX()) == 1.0? 
                         movingObject.getCurrentDirection().getX() + difference : movingObject.getCurrentDirection().getX() - difference);
-                System.out.println("collisionParams x: " + collisionParams.getMaximumMovement().getX() + " y: " + collisionParams.getMaximumMovement().getY());
             }
         }
+        int minorDifference = pointToPlaneParams.getMinorDistance();
+        boolean collidedMinorPlane = Math.signum(minorDifference) == -1;
+        if(collidedMinorPlane){
+            if(pointToPlaneParams.getMinorPlane().getX() == 0){
+                collisionParams.setMaximumMovementY(Math.signum(movingObject.getCurrentDirection().getY()) == 1.0? 
+                        movingObject.getCurrentDirection().getY() + minorDifference : movingObject.getCurrentDirection().getY() - minorDifference);
+            }else{
+                collisionParams.setMaximumMovementX(Math.signum(movingObject.getCurrentDirection().getX()) == 1.0? 
+                        movingObject.getCurrentDirection().getX() + minorDifference : movingObject.getCurrentDirection().getX() - minorDifference);    
+            }
+        }
+        collisionParams.setCollided(collidedMajorPlane || collidedMinorPlane);
         return collisionParams;
     }      
     

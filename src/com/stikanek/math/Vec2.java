@@ -88,10 +88,11 @@ public class Vec2 {
     }
     
     public Vec2 getMajorAxis(){
-        if(Math.abs(x) > Math.abs(y))
-            return new Vec2(Scalars.sign(x), 0);
-        else
-            return new Vec2(0, Scalars.sign(y));
+        return Math.abs(x) > Math.abs(y)? new Vec2(Scalars.sign(x), 0) : new Vec2(0, Scalars.sign(y));
+    }
+    
+    public Vec2 getMinorAxis(){
+        return Math.abs(x) > Math.abs(y)? new Vec2(0, Scalars.sign(y)) : new Vec2(Scalars.sign(x), 0);
     }
     
     public Vec2 mul(Vec2 coefficient){

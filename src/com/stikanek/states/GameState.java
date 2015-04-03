@@ -54,11 +54,7 @@ public class GameState implements State{
             mountains.update();
         sky.update();
         clouds.update();
-//        System.out.println(collisions);
-        Vec2 maximumMovement = new Vec2(collisions.getMaximumPossibleMovement(player));
-        System.out.println("maxmovement x: " + maximumMovement.getX());//delete
-        System.out.println("maxmovement y: " + maximumMovement.getY());//delete
-        System.out.println("-----------------------------------------");
+        Vec2 maximumMovement = new Vec2(collisions.getMaximumMovement(player));
         player.update(maximumMovement);//parameters providing maximum movement for x and y coordinate
         map.update(player.getXOnMap() - pWidth / 2, player.getYOnMap());
     }

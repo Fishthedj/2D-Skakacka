@@ -15,4 +15,8 @@ public abstract class MovingObject extends GameObject{
     public Vec2 getDirection(){
         return new Vec2(direction);
     }    
+
+    public void setDirection(Vec2 direction){
+        this.direction = direction;
+    }    
 }
