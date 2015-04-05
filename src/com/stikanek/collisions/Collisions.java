@@ -12,6 +12,7 @@ import com.stikanek.gameobjects.StaticObject;
 public class Collisions {
     //singleton
     private Vec2 maximumMovement = new Vec2();
+    boolean verticalInnerCollide = false;
     private final TileMap map;
 
     public Collisions(TileMap map){
@@ -23,14 +24,16 @@ public class Collisions {
         Vec2 originalDirection = mo.getDirection();
         Vec2 maxMovementWithZeroY;
         Vec2 maxMovementWithZeroX;       
-        if(adjustedMaxMovement.getY() == 0){
+        if(adjustedMaxMovement.getY() == 0 && originalDirection.getY() != 0){
+//            verticalInnerCollide = true;
             mo.setDirection(new Vec2(originalDirection.getX(), 0));
             maxMovementWithZeroY = getMaximumPossibleMovement(mo);
             mo.setDirection(originalDirection);
             if(maxMovementWithZeroY.getX() != 0)
                 return maxMovementWithZeroY;
         }
-        if(adjustedMaxMovement.getX() == 0){
+        if(adjustedMaxMovement.getX() == 0 && originalDirection.getX() != 0){
+//            verticalInnerCollide = true;
             mo.setDirection(new Vec2(0, originalDirection.getY()));
             maxMovementWithZeroX = getMaximumPossibleMovement(mo);
             mo.setDirection(originalDirection);
@@ -68,13 +71,14 @@ public class Collisions {
                     Vec2 halfExtent = new Vec2(map.getTileWidth() / 2, map.getTileHeight() / 2);
                     CollisionTile collisionTile = new CollisionTile(center, halfExtent);
                     CollisionParams collisionParams = willCollide(mo, collisionTile);
-
+ 
                     if(collisionParams.collided){
                         if(Math.abs(collisionParams.getMaximumMovement().getX()) < Math.abs(tempMaximumMovement.getX()))
                             tempMaximumMovement.setX(collisionParams.getMaximumMovement().getX());
                         if(Math.abs(collisionParams.getMaximumMovement().getY()) < Math.abs(tempMaximumMovement.getY()))
                             tempMaximumMovement.setY(collisionParams.getMaximumMovement().getY());
                     }
+                    verticalInnerCollide = false;
                 }
             }
         }
@@ -95,18 +99,37 @@ public class Collisions {
     }
     
     public CollisionParams willCollide(MovingObject gofst, GameObject goscnd){
-        AabbToAabbParameters params = getPointToPlaneParameters(gofst.getPredictedAABB(), goscnd.getAabb());
+        AabbToAabbParameters params = getPointToPlaneParameters(goscnd.getAabb(), gofst);
         return checkCollision(gofst, params);
     }
-    public AabbToAabbParameters getPointToPlaneParameters(AABB aabbfst, AABB aabbscnd){
+    public AabbToAabbParameters getPointToPlaneParameters(AABB aabbscnd, MovingObject mo){
+        AABB aabbfst = mo.getPredictedAABB();
         Vec2 expandedExtent = aabbscnd.getHalfExtent().addTo(aabbfst.getHalfExtent());      
         Vec2 expandedCenter = aabbscnd.getCenter();
-        Vec2 centersDifference = expandedCenter.sub(aabbfst.getCenter());       
+        Vec2 centersDifference = expandedCenter.sub(aabbfst.getCenter());
+        Vec2 initialCenterDifferences = expandedCenter.sub(mo.getCenter());
+        int halfExtentX = aabbscnd.getHalfExtent().getX();
+        int halfExtentY = aabbscnd.getHalfExtent().getY();
+        int moHalfExtentX = mo.getAabb().getHalfExtent().getX();
+        int moHalfExtentY = mo.getAabb().getHalfExtent().getY();
+        if(initialCenterDifferences.getX() > -halfExtentX - moHalfExtentX && initialCenterDifferences.getX() < halfExtentX + moHalfExtentX &&
+                initialCenterDifferences.getY() - moHalfExtentY - halfExtentY <= 0 && initialCenterDifferences.getY() - moHalfExtentY - halfExtentY >= -2)
+             mo.setCanJump(true);        
         Vec2 normalPlane = centersDifference.getMajorAxis().getNegationTo();
         Vec2 minorNormalPlane = centersDifference.getMinorAxis().getNegationTo();
+//        int yDistance = centersDifference.dotProduct(new Vec2(0,1));  
         int distance = getDifferenceFromPointToPlane(normalPlane, expandedCenter, expandedExtent, aabbfst.getCenter());
         int minorDistance = getDifferenceFromPointToPlane(minorNormalPlane, expandedCenter, expandedExtent, aabbfst.getCenter());
         AabbToAabbParameters positionParameters = new AabbToAabbParameters(distance, minorDistance, normalPlane, minorNormalPlane);
+        
+//        
+//        System.out.println("distance:" + distance);
+//        System.out.println("minorDistance: " + minorDistance);
+//        if(centersDifference.getY() >= 0 && (distance <= 0 || minorDistance <= 0) && !verticalInnerCollide){
+//            mo.setCanJump(true);
+//            System.out.println("condition true");
+////        verticalInnerCollide = false;
+//        }
         return positionParameters;
     }
     

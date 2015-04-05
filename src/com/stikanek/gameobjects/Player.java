@@ -8,15 +8,17 @@ import com.stikanek.pictures.Images;
 import com.stikanek.mainclasses.StatePanel;
 import com.stikanek.collisions.AABB;
 import com.stikanek.math.Vec2;
+import gravity.GravityAffectable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class Player extends MovingObject {
+public class Player extends MovingObject implements GravityAffectable{
 
     public enum State {
 
         STANDING_LEFT, STANDING_RIGHT, STARTED_RUNNING_RIGHT, STARTED_RUNNING_LEFT, RUNNING_RIGHT, RUNNING_LEFT
     }
+    private final int JUMP_SPEED = -12;
     private int xOnMap;
     private int yOnMap;
     private boolean left;
@@ -45,7 +47,7 @@ public class Player extends MovingObject {
         //TODO:center from xOnMap, yOnMap, halfExtent from Image size
         this.xOnMap = xOnMap;//upper left corner
         this.yOnMap = yOnMap;//upper left corner
-        direction = new Vec2(speed, speed);
+        direction = new Vec2(speed, 0);
         this.mapWidth = mapWidth;
         this.mapHeight = mapHeight;
         this.screenHeight = screenHeight;
@@ -69,6 +71,7 @@ public class Player extends MovingObject {
         yHalfExtent = standingRightImage.getHeight() / 2;
         center = new Vec2(xOnMap + xHalfExtent, yOnMap + yHalfExtent);
         aabb = new AABB(center, new Vec2(xHalfExtent, yHalfExtent));
+        canJump = true;
     }
 
     public void setCurrentState(State state) {
@@ -119,6 +122,10 @@ public class Player extends MovingObject {
         return yOnScreen  >= yTreshold ? yOnScreen : yTreshold;
     }
     
+    public boolean isOnGround(Vec2 maximumMovement){
+        //problem: top hit? 
+        return maximumMovement.getY() == 0;
+    }
     @Override
     public Vec2 getPredictedCenterPosition(){
         Vec2 predictedPosition = new Vec2(center);
@@ -147,16 +154,24 @@ public class Player extends MovingObject {
             currentDirection.setX(direction.getX());
         if(left)
             currentDirection.setX(-direction.getX());
-        if(up)
-            currentDirection.setY(-direction.getY());
-        if(down)
-            currentDirection.setY(direction.getY());
+//        if(up)
+//            currentDirection.setY(-direction.getY());
+//        if(down)
+//            currentDirection.setY(direction.getY());
+        currentDirection.setY(direction.getY());
         return currentDirection;
     }
     
     @Override
     public Vec2 getCurrentCenterPosition(){
         return new Vec2(center);
+    }
+    
+    public void jump(){
+        if(canJump){
+            setDirection(new Vec2(getDirection().getX(), JUMP_SPEED));
+            canJump = false;
+        }
     }
     
     public void update(Vec2 maximumMovement) {
@@ -217,18 +232,10 @@ public class Player extends MovingObject {
                     break;
             }
         }
-        if(up){
-            yOnMap += maximumMovement.getY();
-        }
-        
-        if(down){
-            yOnMap += maximumMovement.getY();
-        }
+        yOnMap += maximumMovement.getY();
         //update center and AABB coordinates
         center.setXY(xOnMap + xHalfExtent, yOnMap + yHalfExtent);
         aabb.setCenter(center);
-//        System.out.println(center.getX());   //***************
-//        System.out.println(center.getY());  //****************
     }
 
     public void draw(Graphics2D g) {

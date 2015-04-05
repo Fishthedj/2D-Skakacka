@@ -12,4 +12,12 @@ public abstract class GameObject {
     public AABB getAabb(){
         return new AABB(aabb);
     }    
+    
+    public void setCenter(Vec2 center){
+        this.center = center;
+    }
+    
+    public Vec2 getCenter(){
+        return new Vec2(center);
+    }
 }

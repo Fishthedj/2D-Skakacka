@@ -99,6 +99,12 @@ public class Vec2 {
         return new Vec2(x * coefficient.x, y * coefficient.y);
     }
     
+    public Vec2 mulTo(float coefficient){
+        x *= coefficient;
+        y *= coefficient;
+        return this;
+    }
+    
     public Vec2 sub(Vec2 subtrahend){
         return new Vec2(x - subtrahend .x, y - subtrahend.y);
     }

@@ -2,6 +2,7 @@ package com.stikanek.states;
 import com.stikanek.tiles.TileMap;
 import com.stikanek.math.Vec2;
 import com.stikanek.collisions.Collisions;
+import com.stikanek.gameobjects.MovingObject;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -12,7 +13,9 @@ import javax.swing.JButton;
 import com.stikanek.pictures.Background;
 import com.stikanek.mainclasses.StatePanel;
 import com.stikanek.gameobjects.Player;
+import gravity.Gravity;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
 
 /**
  *
@@ -31,6 +34,8 @@ public class GameState implements State{
     private final TileMap map;
     private final Player player;
     private final Collisions collisions;
+    private ArrayList<MovingObject> movingObjects;
+    private final Gravity gravity;
     
     public GameState(StatePanel jpanel, int pWidth, int pHeight, Logger l){
         this.panel = jpanel;
@@ -43,8 +48,11 @@ public class GameState implements State{
         map = new TileMap(5, pHeight);
         map.loadTileMap("/com/stikanek/map.txt");
         map.loadTiles("grasstileset.gif");
+        movingObjects = new ArrayList();
         player = new Player(pWidth / 2, 290, 5, map.getMapWidth(), map.getMapHeight(), pHeight);
+        movingObjects.add(player);
         collisions = new Collisions(map);
+        gravity = new Gravity();
         l.log(Level.INFO,"Images loaded.");
     }
     
@@ -54,9 +62,13 @@ public class GameState implements State{
             mountains.update();
         sky.update();
         clouds.update();
+        gravity.applyGravity(movingObjects);
         Vec2 maximumMovement = new Vec2(collisions.getMaximumMovement(player));
         player.update(maximumMovement);//parameters providing maximum movement for x and y coordinate
         map.update(player.getXOnMap() - pWidth / 2, player.getYOnMap());
+        if(player.isOnGround(maximumMovement)){
+            player.setDirection(new Vec2(player.getDirection().getX(), 0));
+        }
     }
     @Override
     public void entered(){
@@ -114,8 +126,9 @@ public class GameState implements State{
             mountains.setVector(1.0, 0);
             player.setLeft(true);
         }      
-        if(e.getKeyCode() == KeyEvent.VK_UP)
-            player.setUp(true);
+        if(e.getKeyCode() == KeyEvent.VK_UP){
+            player.jump();
+        }
         if(e.getKeyCode() == KeyEvent.VK_DOWN)
             player.setDown(true);        
     }
