@@ -19,7 +19,7 @@ public class StatePanel extends JPanel implements GameStateManager, Runnable {
 
     public static final int PWIDTH = 320;
     public static final int PHEIGHT = 240;
-    public static final int SCALE = 2;
+    public static final int SCALE = 3;
     private static final int NO_DELAYS_PER_YIELD = 16;
     private static final int MAX_FRAME_SKIPS = 5;
     private volatile boolean running = false;

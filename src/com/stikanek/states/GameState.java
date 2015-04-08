@@ -13,7 +13,7 @@ import javax.swing.JButton;
 import com.stikanek.pictures.Background;
 import com.stikanek.mainclasses.StatePanel;
 import com.stikanek.gameobjects.Player;
-import gravity.Gravity;
+import com.stikanek.gravity.Gravity;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 
@@ -49,7 +49,7 @@ public class GameState implements State{
         map.loadTileMap("/com/stikanek/map.txt");
         map.loadTiles("grasstileset.gif");
         movingObjects = new ArrayList();
-        player = new Player(pWidth / 2, 290, 5, map.getMapWidth(), map.getMapHeight(), pHeight);
+        player = new Player(pWidth / 2, 290, 8, map.getMapWidth(), map.getMapHeight(), pHeight);
         movingObjects.add(player);
         collisions = new Collisions(map);
         gravity = new Gravity();
@@ -70,6 +70,7 @@ public class GameState implements State{
             player.setDirection(new Vec2(player.getDirection().getX(), 0));
         }
     }
+    
     @Override
     public void entered(){
         panel.removeAll();
