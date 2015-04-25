@@ -138,12 +138,10 @@ public class GameState implements State{
     public void processKeyReleased(KeyEvent e){
         if(e.getKeyCode() == KeyEvent.VK_LEFT){
            player.setLeft(false);
-           player.setCurrentState(Player.State.STANDING_LEFT);
            mountains.setVector(0,0);
        }
        if(e.getKeyCode() == KeyEvent.VK_RIGHT){
            player.setRight(false);
-           player.setCurrentState(Player.State.STANDING_RIGHT);
            mountains.setVector(0,0);
        }
         if(e.getKeyCode() == KeyEvent.VK_UP)

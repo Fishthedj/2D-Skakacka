@@ -11,6 +11,10 @@ import com.stikanek.math.Vec2;
 import com.stikanek.gravity.GravityAffectable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Set;
 
 public class Player extends MovingObject implements GravityAffectable{
 
@@ -18,6 +22,12 @@ public class Player extends MovingObject implements GravityAffectable{
 
         STANDING_LEFT, STANDING_RIGHT, STARTED_RUNNING_RIGHT, STARTED_RUNNING_LEFT, RUNNING_RIGHT, RUNNING_LEFT,
         STARTED_JUMPING_LEFT, STARTED_JUMPING_RIGHT, STARTED_FALLING_LEFT, STARTED_FALLING_RIGHT,IN_AIR_LEFT, IN_AIR_RIGHT;
+    }
+    public enum Effect{
+        LEFT_KEY_T, RIGHT_KEY_T, LEFT_KEY_F, RIGHT_KEY_F, JUMPING_UP, FALLING_DOWN_T, FALLING_DOWN_F, ZERO_VERTICAL_SPEED;
+    }
+    public enum BooleanEffect{
+        
     }
     private final int JUMP_SPEED = -12;
     private int xOnMap;
@@ -53,6 +63,8 @@ public class Player extends MovingObject implements GravityAffectable{
     private final BufferedImage inAirLeftImage;
     private final BufferedImage inAirRightImage;
     private State currentState;
+    private final Set<Effect> appliedEffects = EnumSet.noneOf(Effect.class);
+    private final Matcher matcher;
 
     public Player(int xOnMap, int yOnMap, int speed, int mapWidth, int mapHeight, int screenHeight) {
         //TODO:center from xOnMap, yOnMap, halfExtent from Image size
@@ -108,6 +120,8 @@ public class Player extends MovingObject implements GravityAffectable{
         center = new Vec2(xOnMap + xHalfExtent, yOnMap + yHalfExtent);
         aabb = new AABB(center, new Vec2(xHalfExtent, yHalfExtent));
         canJump = true;
+        matcher = new Matcher();
+        matcher.addTransitions(createTransitions());
     }
 
     public void setCurrentState(State state) {
@@ -191,6 +205,10 @@ public class Player extends MovingObject implements GravityAffectable{
         return new Vec2(center);
     }
     
+    public State getCurrentState(){
+        return currentState;
+    }
+    
     public void jump(){
         if(canJump){
             setDirection(new Vec2(getDirection().getX(), JUMP_SPEED));
@@ -202,134 +220,67 @@ public class Player extends MovingObject implements GravityAffectable{
         runningLeftAnimator.reset();
         runningRightAnimator.reset();
     }
-    public void update(Vec2 maximumMovement) {
+    
+    public void addEffects(Effect ... effects){
+        Collections.addAll(appliedEffects, effects);
+    }
+    
+    public void addEffect(Effect effect){
+        appliedEffects.add(effect);
+    }
+    
+    public void removeEffects(){
+        appliedEffects.removeAll(appliedEffects);
+    }
+    
+    public Set<Effect> getAppliedEffects(){
+        return appliedEffects;
+    }
+    
+    public void setAppliedEffects(Vec2 maximumMovement){
+        removeEffects();
+        addEffect(left ? Effect.LEFT_KEY_T : Effect.LEFT_KEY_F);
+        addEffect(right ? Effect.RIGHT_KEY_T : Effect.RIGHT_KEY_F);
+        if(maximumMovement.getY() > 0)
+            addEffect(Effect.FALLING_DOWN_T);
+        if(maximumMovement.getY() < 0)
+            addEffect(Effect.JUMPING_UP);
+        if(maximumMovement.getY() == 0)
+            addEffect(Effect.ZERO_VERTICAL_SPEED);
+    }    
+    
+    public void updatePosition(Vec2 maximumMovement){
         boolean isNearLeftEdge = xOnMap <= StatePanel.PWIDTH / 2;
-        boolean isNearRightEdge = xOnMap >= mapWidth - StatePanel.PWIDTH / 2;
-        boolean isJumpingUp = maximumMovement.getY() < 0; 
-        boolean isFallingDown = maximumMovement.getY() > 0;
-        System.out.println(maximumMovement.getY());
-        if(isJumpingUp){
-            switch (currentState){
-                case STANDING_LEFT:
-                    currentState = State.STARTED_JUMPING_LEFT;
-                    resetRunningAnimators();
-                    break;
-                case STANDING_RIGHT:
-                    currentState = State.STARTED_JUMPING_RIGHT;
-                    resetRunningAnimators();
-                    break;
-                case STARTED_JUMPING_LEFT:
-                    startedJumpingLeftAnimator.update();
-                    break;
-                case STARTED_JUMPING_RIGHT:
-                    startedJumpingRightAnimator.update();
-                    break;
-            }
-        }else if(isFallingDown){
-            switch(currentState){
-                case STANDING_LEFT:
-                    currentState = State.STARTED_FALLING_LEFT;
-                    resetRunningAnimators();
-                    break;
-                case STANDING_RIGHT:
-                    currentState = State.STARTED_FALLING_RIGHT;
-                    resetRunningAnimators();
-                    break;
-                case IN_AIR_RIGHT:
-                    currentState = State.STARTED_FALLING_RIGHT;
-                    break;
-                case IN_AIR_LEFT:
-                    currentState = State.STARTED_FALLING_LEFT;
-                    break;
-                case STARTED_FALLING_LEFT:
-                    startedFallingLeftAnimator.update();
-                    break;
-                case STARTED_FALLING_RIGHT:
-                    startedFallingRightAnimator.update();
-                    break;
-                    
-            }
-        }else if( currentState == State.STARTED_JUMPING_RIGHT && maximumMovement.getY() == 0){
-            //TODO: create separate cases for left and right in air
-            currentState = State.IN_AIR_RIGHT;
-            startedJumpingLeftAnimator.reset();
-            startedJumpingRightAnimator.reset();
-        //TODO: image right after landing 
-        }else if(currentState == State.STARTED_JUMPING_LEFT && maximumMovement.getY() == 0){
-            currentState = State.IN_AIR_LEFT;
-            startedJumpingLeftAnimator.reset();
-            startedJumpingRightAnimator.reset();
-        }else if(currentState == State.STARTED_FALLING_RIGHT && maximumMovement.getY() == 0){
-            currentState = State.STANDING_RIGHT;
-            startedFallingRightAnimator.reset();
-            startedFallingLeftAnimator.reset();
-        }else if(currentState == State.STARTED_FALLING_LEFT && maximumMovement.getY() == 0){
-            currentState = State.STANDING_LEFT;
-            startedFallingRightAnimator.reset();
-            startedFallingLeftAnimator.reset();            
-        }else{
-            if (left) {
-                if (isNearLeftEdge) {
-                    xOnMap = (xOnMap + maximumMovement.getX() >= 0) ? xOnMap + maximumMovement.getX() : 0;
-                } else if (isNearRightEdge) {
-                    xOnMap += maximumMovement.getX();
-                }else{
-                    xOnMap += maximumMovement.getX();
-                }
-                switch (currentState) {
-                    case STANDING_RIGHT:
-                        currentState = State.STANDING_LEFT;
-                        break;
-                    case STANDING_LEFT:
-                        currentState = State.STARTED_RUNNING_LEFT;
-                        runningLeftAnimator.reset();
-                        break;
-                    case STARTED_RUNNING_LEFT:
-                        currentState = State.RUNNING_LEFT;
-                        break;
-                    case RUNNING_LEFT:
-                        runningLeftAnimator.update();
-                        break;
-                    case RUNNING_RIGHT:
-                        currentState = State.STANDING_LEFT;
-                        break;  
-                }
-            }
-
-            if (right) {
-                if (isNearLeftEdge) {
-                    xOnMap += maximumMovement.getX();
-                }else if(isNearRightEdge) {
-                    xOnMap = (xOnMap + maximumMovement.getX() >= mapWidth)? mapWidth : xOnMap + maximumMovement.getX();
-                } else {
-                    xOnMap += maximumMovement.getX();
-                }
-                switch (currentState) {
-                    case STANDING_LEFT:
-                        currentState = State.STANDING_RIGHT;
-                        break;
-                    case STANDING_RIGHT:
-                        currentState = State.STARTED_RUNNING_RIGHT;
-                        runningLeftAnimator.reset();
-                        break;
-                    case STARTED_RUNNING_RIGHT:
-                        currentState = State.RUNNING_RIGHT;
-                        break;
-                    case RUNNING_RIGHT:
-                        runningRightAnimator.update();
-                        break;
-                    case RUNNING_LEFT:
-                        currentState = State.STANDING_RIGHT;
-                        break;
-                }
-            }
+        boolean isNearRightEdge = xOnMap >= mapWidth - StatePanel.PWIDTH / 2;        
+        if(left){
+            if (isNearLeftEdge) {
+                xOnMap = (xOnMap + maximumMovement.getX() >= 0) ? xOnMap + maximumMovement.getX() : 0;
+            } else if (isNearRightEdge) {
+                xOnMap += maximumMovement.getX();
+            }else{
+                xOnMap += maximumMovement.getX();
+            }            
+        }else if(right){
+            if (isNearLeftEdge) {
+                xOnMap += maximumMovement.getX();
+            }else if(isNearRightEdge) {
+                xOnMap = (xOnMap + maximumMovement.getX() >= mapWidth)? mapWidth : xOnMap + maximumMovement.getX();
+            } else {
+                xOnMap += maximumMovement.getX();
+            }            
         }
             yOnMap += maximumMovement.getY();
             //update center and AABB coordinates
             center.setXY(xOnMap + xHalfExtent, yOnMap + yHalfExtent);
-            aabb.setCenter(center);
+            aabb.setCenter(center);        
     }
-
+    
+    public void update(Vec2 maximumMovement){
+        updatePosition(maximumMovement);
+        setAppliedEffects(maximumMovement);
+        setCurrentState(matcher.getNextState(this));
+    }
+    
     public void draw(Graphics2D g) {
         switch (currentState) {
             case STANDING_RIGHT:
@@ -369,6 +320,290 @@ public class Player extends MovingObject implements GravityAffectable{
                 g.drawImage(startedFallingLeftAnimator.getCurrentImage(), getXOnScreen(), getYOnScreen() - 30, null);
                 break;                
         }
+    }
+    
+    class Matcher{
+        private final List<Transition> transitions = new ArrayList<>();
+        
+        public void addTransition(Transition transition){
+            transitions.add(transition);
+        }
+        
+        public void addTransitions(List<Transition> transitionList){
+            transitions.addAll(transitionList);
+        }
+        
+        public boolean matches(Transition transition, State currentState, Set<Effect> appliedEffects){
+//            return transition.getCurrentState() == currentState & transition.getEffects().containsAll(appliedEffects);
+            return transition.getCurrentState() == currentState & appliedEffects.containsAll(transition.getEffects());
+        }
+        
+        public State getNextState(Player player){
+            State nextState = player.getCurrentState();
+            State currentState = player.getCurrentState();
+            Set<Effect> appliedEffects = player.getAppliedEffects();
+            
+            for(Transition transition:transitions){
+                if(matches(transition, currentState, appliedEffects)){
+                    transition.applyChanges();
+                    return transition.getFinalState();
+                }
+            }
+            return nextState;
+        }
+    }
+    
+    abstract class Transition{
+        State currentState;
+        State finalState;
+        Set<Effect> effects = EnumSet.noneOf(Effect.class);
+        
+        Transition(State currentState, State finalState, Effect ... usedEffects){
+            this.currentState = currentState;
+            this.finalState = finalState;
+            Collections.addAll(effects, usedEffects);
+        }
+        
+        State getCurrentState(){
+            return currentState;
+        }
+        
+        State getFinalState(){
+            return finalState;
+        }
+        
+        Set<Effect> getEffects(){
+            return effects;
+        }
+        
+        abstract void applyChanges();        
+    }
+    
+    final ArrayList<Transition> createTransitions(){
+        ArrayList<Transition> transitionList = new ArrayList<>();
+        transitionList.add(new Transition(State.STANDING_RIGHT, State.STANDING_LEFT, Effect.LEFT_KEY_T, Effect.ZERO_VERTICAL_SPEED){
+            @Override
+            void applyChanges(){
+                
+            }
+        });
+        transitionList.add(new Transition(State.STANDING_LEFT, State.STANDING_RIGHT, Effect.RIGHT_KEY_T, Effect.ZERO_VERTICAL_SPEED){
+            @Override
+            void applyChanges(){
+                
+            }
+        });
+        transitionList.add(new Transition(State.STANDING_LEFT, State.STARTED_RUNNING_LEFT, Effect.LEFT_KEY_T){
+            @Override
+            void applyChanges(){
+                
+            }
+        });
+        transitionList.add(new Transition(State.STANDING_RIGHT, State.STARTED_RUNNING_RIGHT, Effect.RIGHT_KEY_T){
+            @Override
+            void applyChanges(){
+            }
+        });         
+        transitionList.add(new Transition(State.STARTED_RUNNING_LEFT, State.RUNNING_LEFT, Effect.LEFT_KEY_T){
+            @Override
+            void applyChanges(){
+                
+            }
+        });
+        transitionList.add(new Transition(State.STARTED_RUNNING_RIGHT, State.RUNNING_RIGHT, Effect.RIGHT_KEY_T){
+            @Override
+            void applyChanges(){
+            }
+        });         
+        transitionList.add(new Transition(State.RUNNING_LEFT, State.RUNNING_LEFT, Effect.LEFT_KEY_T, Effect.ZERO_VERTICAL_SPEED){
+            @Override
+            void applyChanges(){
+                runningLeftAnimator.update();
+            }
+        });
+        transitionList.add(new Transition(State.RUNNING_RIGHT, State.RUNNING_RIGHT, Effect.RIGHT_KEY_T, Effect.ZERO_VERTICAL_SPEED){
+            @Override
+            void applyChanges(){
+                runningRightAnimator.update();
+            }
+        });         
+        transitionList.add(new Transition(State.RUNNING_LEFT, State.STANDING_LEFT, Effect.LEFT_KEY_F, Effect.RIGHT_KEY_F){
+            @Override
+            void applyChanges(){
+                runningLeftAnimator.reset();
+            }
+        });  
+        transitionList.add(new Transition(State.RUNNING_RIGHT, State.STANDING_RIGHT, Effect.LEFT_KEY_F, Effect.RIGHT_KEY_F){
+            @Override
+            void applyChanges(){
+                runningRightAnimator.reset();
+            }
+        });         
+        transitionList.add(new Transition(State.RUNNING_LEFT, State.STANDING_RIGHT, Effect.RIGHT_KEY_T, Effect.LEFT_KEY_F){
+            @Override
+            void applyChanges(){
+                runningLeftAnimator.reset();
+            }
+        });
+        transitionList.add(new Transition(State.RUNNING_RIGHT, State.STANDING_LEFT, Effect.LEFT_KEY_T, Effect.RIGHT_KEY_F){
+            @Override
+            void applyChanges(){
+                runningRightAnimator.reset();
+            }
+        });         
+        transitionList.add(new Transition(State.STANDING_LEFT, State.STARTED_JUMPING_LEFT, Effect.JUMPING_UP){
+            @Override
+            void applyChanges(){
+            }
+        });
+        transitionList.add(new Transition(State.STANDING_RIGHT, State.STARTED_JUMPING_RIGHT, Effect.JUMPING_UP){
+            @Override
+            void applyChanges(){
+            }
+        });         
+        transitionList.add(new Transition(State.STARTED_JUMPING_LEFT, State.STARTED_JUMPING_LEFT, Effect.JUMPING_UP){
+            @Override
+            void applyChanges(){
+                startedJumpingLeftAnimator.update();
+            }
+        });
+        transitionList.add(new Transition(State.STARTED_JUMPING_RIGHT, State.STARTED_JUMPING_RIGHT, Effect.JUMPING_UP){
+            @Override
+            void applyChanges(){
+                startedJumpingRightAnimator.update();
+            }
+        });         
+//        transitionList.add(new Transition(State.STARTED_JUMPING_LEFT, State.STARTED_JUMPING_LEFT, Effect.JUMPING_UP, Effect.LEFT_KEY_T){
+//            @Override
+//            void applyChanges(){
+//            }
+//        });         
+        transitionList.add(new Transition(State.STARTED_JUMPING_LEFT, State.IN_AIR_LEFT, Effect.ZERO_VERTICAL_SPEED){
+            @Override
+            void applyChanges(){
+                startedJumpingLeftAnimator.reset();
+            }
+        });
+        transitionList.add(new Transition(State.STARTED_JUMPING_RIGHT, State.IN_AIR_RIGHT, Effect.ZERO_VERTICAL_SPEED){
+            @Override
+            void applyChanges(){
+                startedJumpingRightAnimator.reset();
+            }
+        });         
+        transitionList.add(new Transition(State.RUNNING_LEFT, State.STARTED_JUMPING_LEFT, Effect.JUMPING_UP, Effect.LEFT_KEY_T){
+            @Override
+            void applyChanges(){
+            }
+        });         
+        transitionList.add(new Transition(State.RUNNING_RIGHT, State.STARTED_JUMPING_RIGHT, Effect.JUMPING_UP, Effect.RIGHT_KEY_T){
+            @Override
+            void applyChanges(){
+            }
+        }); 
+        transitionList.add(new Transition(State.RUNNING_LEFT, State.STARTED_FALLING_LEFT, Effect.FALLING_DOWN_T){
+            @Override
+            void applyChanges(){
+            }
+        });         
+        transitionList.add(new Transition(State.RUNNING_RIGHT, State.STARTED_FALLING_RIGHT, Effect.FALLING_DOWN_T){
+            @Override
+            void applyChanges(){
+            }
+        });         
+        transitionList.add(new Transition(State.IN_AIR_LEFT, State.STARTED_FALLING_LEFT, Effect.FALLING_DOWN_T){
+            @Override
+            void applyChanges(){
+            }
+        });
+        transitionList.add(new Transition(State.IN_AIR_RIGHT, State.STARTED_FALLING_RIGHT, Effect.FALLING_DOWN_T){
+            @Override
+            void applyChanges(){
+            }
+        });  
+        transitionList.add(new Transition(State.IN_AIR_LEFT, State.STANDING_LEFT, Effect.ZERO_VERTICAL_SPEED){
+            @Override
+            void applyChanges(){
+            }
+        });         
+        transitionList.add(new Transition(State.IN_AIR_RIGHT, State.STANDING_RIGHT, Effect.ZERO_VERTICAL_SPEED){
+            @Override
+            void applyChanges(){
+            }
+        });         
+        transitionList.add(new Transition(State.STARTED_FALLING_LEFT, State.STARTED_FALLING_LEFT, Effect.FALLING_DOWN_T, Effect.LEFT_KEY_T){
+            @Override
+            void applyChanges(){
+                startedFallingLeftAnimator.update();
+            }
+        });         
+        transitionList.add(new Transition(State.STARTED_FALLING_RIGHT, State.STARTED_FALLING_RIGHT, Effect.FALLING_DOWN_T){
+            @Override
+            void applyChanges(){
+                startedFallingRightAnimator.update();
+            }
+        });         
+        transitionList.add(new Transition(State.STARTED_FALLING_LEFT, State.STARTED_FALLING_LEFT, Effect.FALLING_DOWN_T){
+            @Override
+            void applyChanges(){
+                startedFallingLeftAnimator.update();
+            }
+        });       
+        //add for right case
+        transitionList.add(new Transition(State.STARTED_FALLING_LEFT, State.RUNNING_LEFT, Effect.LEFT_KEY_T, Effect.ZERO_VERTICAL_SPEED){
+            @Override
+            void applyChanges(){
+                startedFallingLeftAnimator.reset();
+            }
+        });  
+        transitionList.add(new Transition(State.STARTED_FALLING_RIGHT, State.RUNNING_RIGHT, Effect.RIGHT_KEY_T, Effect.ZERO_VERTICAL_SPEED){
+            @Override
+            void applyChanges(){
+                startedFallingRightAnimator.reset();
+            }
+        });         
+        transitionList.add(new Transition(State.STARTED_FALLING_LEFT, State.STANDING_LEFT, Effect.ZERO_VERTICAL_SPEED){
+            @Override
+            void applyChanges(){
+                startedFallingLeftAnimator.reset();
+            }
+        });     
+        transitionList.add(new Transition(State.STARTED_FALLING_RIGHT, State.STANDING_RIGHT, Effect.ZERO_VERTICAL_SPEED){
+            @Override
+            void applyChanges(){
+                startedFallingRightAnimator.reset();
+            }
+        });         
+        transitionList.add(new Transition(State.STANDING_LEFT, State.STARTED_FALLING_LEFT, Effect.FALLING_DOWN_T){
+            @Override
+            void applyChanges(){
+            }
+        }); 
+        transitionList.add(new Transition(State.STANDING_RIGHT, State.STARTED_FALLING_RIGHT, Effect.FALLING_DOWN_T){
+            @Override
+            void applyChanges(){
+            }
+        }); 
+        transitionList.add(new Transition(State.STARTED_RUNNING_LEFT, State.STANDING_LEFT, Effect.LEFT_KEY_F){
+            @Override
+            void applyChanges(){
+            }
+        });         
+        transitionList.add(new Transition(State.STARTED_RUNNING_RIGHT, State.STANDING_RIGHT, Effect.RIGHT_KEY_F){
+            @Override
+            void applyChanges(){
+            }
+        });         
+        transitionList.add(new Transition(State.RUNNING_LEFT, State.STARTED_JUMPING_LEFT, Effect.JUMPING_UP, Effect.LEFT_KEY_T){
+            @Override
+            void applyChanges(){
+            }
+        });
+        transitionList.add(new Transition(State.RUNNING_RIGHT, State.STARTED_JUMPING_RIGHT, Effect.JUMPING_UP, Effect.RIGHT_KEY_T){
+            @Override
+            void applyChanges(){
+            }
+        });         
+        return transitionList;
     }
 
     /**
