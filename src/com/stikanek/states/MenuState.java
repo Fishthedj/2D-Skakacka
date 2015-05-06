@@ -18,7 +18,7 @@ import javax.swing.JButton;
 public class MenuState implements State {
 
     private final StatePanel panel;
-    private final JButton btn = new JButton();
+    private final JButton btn = new JButton("Start Game");
     private final Logger logger;
 
     /**

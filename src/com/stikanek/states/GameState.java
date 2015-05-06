@@ -87,18 +87,25 @@ public class GameState implements State{
         int playerYOnMap = player.getYOnMap();
         for(Iterator<Enemy> iterator = enemies.iterator(); iterator.hasNext();){
             Enemy enemy = iterator.next();
-            if(enemy.isDead() && player.hasPlayedAttackAnimationOnce())
+            if(enemy.isDead() && player.hasPlayedAttackAnimationOnce()){
                 iterator.remove();
+                signs.add(new KOSign(player.getXOnScreen() + 30, player.getYOnScreen() - 30, Images.loadImage("koSmall.gif"), 20));
+            }
         }
         enemies.stream().filter((e) -> (e.shouldBeDrawn(playerXOnMap, playerYOnMap, map.getMapWidth()))).forEach((e) -> {
             e.update();
             if(player.canDealDamage() && player.getAttackingRectangle().intersects(e.getCollisionRectangle())){
-                signs.add(new DamageSign(player.getXOnScreen() +50, player.getYOnScreen() - 10, Images.loadImage("20.gif"), 20));
+                signs.add(new DamageSign(player.getXOnScreen() + 50, player.getYOnScreen() - 20, Images.loadImage("20.gif"), 20));
                 player.setCanDealDamage(false);
                 e.receiveDamage(player.dealDamage());
             }
         });
         signs.stream().forEach((s) -> {s.update();});
+        for(Iterator<Sign> iterator = signs.iterator(); iterator.hasNext();){
+            Sign sign = iterator.next();
+            if(!sign.shouldBeShown())
+                iterator.remove();
+        }
     }
     
     @Override
@@ -191,11 +198,11 @@ public class GameState implements State{
     }
     
     abstract class Sign{
-        private int xOnScreen;
-        private int yOnScreen;
-        private BufferedImage image;
-        private int count;
-        private boolean show = true;
+        protected int xOnScreen;
+        protected int yOnScreen;
+        protected BufferedImage image;
+        protected int count;
+        protected boolean show = true;
         
         Sign(int xOnScreen, int yOnScreen, BufferedImage image, int count){
             this.xOnScreen = xOnScreen;
@@ -206,7 +213,6 @@ public class GameState implements State{
         
         void update(){
             count--;
-            yOnScreen -= 2;
         }
         
         boolean shouldBeShown(){
@@ -222,5 +228,28 @@ public class GameState implements State{
         public DamageSign(int xOnScreen, int yOnScreen, BufferedImage image, int count){
             super(xOnScreen, yOnScreen, image, count);
         }
+        
+        @Override
+        void update(){
+            count--;
+            yOnScreen -= 2;            
+        }
+    }
+    
+    class KOSign extends Sign{
+        public KOSign(int xOnScreen, int yOnScreen, BufferedImage image, int count){
+            super(xOnScreen, yOnScreen, image, count);
+        }
+        
+        @Override
+        void draw(Graphics2D g){
+            g.drawImage(image, xOnScreen, yOnScreen, 120, 60, null);
+        }
+        
+        @Override
+        void update(){
+            count--;
+            yOnScreen -= 1;            
+        }        
     }
 }
