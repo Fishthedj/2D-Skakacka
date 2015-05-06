@@ -2,6 +2,7 @@ package com.stikanek.states;
 import com.stikanek.tiles.TileMap;
 import com.stikanek.math.Vec2;
 import com.stikanek.collisions.Collisions;
+import com.stikanek.gameobjects.Enemy;
 import com.stikanek.gameobjects.MovingObject;
 import java.awt.Color;
 import java.awt.Graphics;
@@ -13,9 +14,11 @@ import javax.swing.JButton;
 import com.stikanek.pictures.Background;
 import com.stikanek.mainclasses.StatePanel;
 import com.stikanek.gameobjects.Player;
+import com.stikanek.gameobjects.Urzice;
 import com.stikanek.gravity.Gravity;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 /**
  *
@@ -34,8 +37,10 @@ public class GameState implements State{
     private final TileMap map;
     private final Player player;
     private final Collisions collisions;
-    private ArrayList<MovingObject> movingObjects;
+    private final ArrayList<MovingObject> movingObjects;
     private final Gravity gravity;
+    private final ArrayList<Enemy> enemies;
+    private final Urzice urzice;
     
     public GameState(StatePanel jpanel, int pWidth, int pHeight, Logger l){
         this.panel = jpanel;
@@ -44,31 +49,51 @@ public class GameState implements State{
         this.logger = l;
         mountains = new Background.Builder("mountains.gif").build();
         sky = new Background.Builder("sky.gif").build();
-        clouds = new Background.Builder("clouds.gif").dx(-0.5).build(); 
+        clouds = new Background.Builder("clouds.gif").dx(-1.0).build(); 
         map = new TileMap(5, pHeight);
         map.loadTileMap("/com/stikanek/map.txt");
         map.loadTiles("grasstileset.gif");
-        movingObjects = new ArrayList();
+        movingObjects = new ArrayList<>();
         player = new Player(pWidth / 2, 290, 8, map.getMapWidth(), map.getMapHeight(), pHeight);
         movingObjects.add(player);
         collisions = new Collisions(map);
         gravity = new Gravity();
         l.log(Level.INFO,"Images loaded.");
+        enemies = new ArrayList<>();
+        urzice = new Urzice(new Vec2(pWidth / 2 + 150, 296), new Vec2(43,34));
+        enemies.add(urzice);
     }
     
     @Override
     public void update(){
-        if(!map.isNearEdgesHorizontally())
-            mountains.update();
         sky.update();
         clouds.update();
         gravity.applyGravity(movingObjects);
         Vec2 maximumMovement = new Vec2(collisions.getMaximumMovement(player));
         player.update(maximumMovement);//parameters providing maximum movement for x and y coordinate
         map.update(player.getXOnMap() - pWidth / 2, player.getYOnMap());
+        //
         if(player.isOnGround(maximumMovement)){
             player.setDirection(new Vec2(player.getDirection().getX(), 0));
         }
+        if(!map.isNearEdgesHorizontally() && maximumMovement.getX() != 0 && !player.isAttacking())
+            mountains.update();        
+        int playerXOnMap = player.getXOnMap();
+        int playerYOnMap = player.getYOnMap();
+        for(Iterator<Enemy> iterator = enemies.iterator(); iterator.hasNext();){
+            Enemy enemy = iterator.next();
+            if(enemy.isDead())
+                iterator.remove();
+        }
+        enemies.stream().filter((e) -> (e.shouldBeDrawn(playerXOnMap, playerYOnMap, map.getMapWidth()))).forEach((e) -> {
+            e.update();
+            System.out.println(player.getAttackingRectangle());
+            System.out.println(e.getCollisionRectangle());
+            if(player.canDealDamage() &&player.getAttackingRectangle().intersects(e.getCollisionRectangle())){
+                player.setCanDealDamage(false);
+                e.receiveDamage(player.dealDamage());
+            }
+        });
     }
     
     @Override
@@ -97,8 +122,13 @@ public class GameState implements State{
         clouds.draw((Graphics2D)dbg);
         mountains.draw((Graphics2D)dbg);
         map.draw((Graphics2D)dbg);
+//        player.drawAttackingRectangle((Graphics2D)dbg);
         player.draw((Graphics2D)dbg);
-//        if(gameOver){
+        int playerXOnMap = player.getXOnMap();
+        int playerYOnMap = player.getYOnMap();        
+        enemies.stream().filter((e) -> (e.shouldBeDrawn(playerXOnMap, playerYOnMap, map.getMapWidth()))).forEach((e) -> {
+            e.draw((Graphics2D)dbg, player);
+        });//        if(gameOver){
 //            gameOverMessage(dbg);
 //        }    
     }
@@ -131,7 +161,9 @@ public class GameState implements State{
             player.jump();
         }
         if(e.getKeyCode() == KeyEvent.VK_DOWN)
-            player.setDown(true);        
+            player.setDown(true);
+        if(e.getKeyCode() == KeyEvent.VK_SPACE)
+            player.attack();
     }
     
     @Override

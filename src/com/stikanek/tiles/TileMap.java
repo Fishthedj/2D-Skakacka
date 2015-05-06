@@ -103,7 +103,15 @@ public class TileMap {
             System.out.println("IOException");
         }
     }
+    
+    public int getRowsInMap(){
+        return rowsInMap;
+    }
 
+    public int getColumnsInMap(){
+        return colsInMap;
+    }
+    
     /**
      * Loads tile images from the file specified by <code>file</code> String.
      * @param file the name of the file to be read from

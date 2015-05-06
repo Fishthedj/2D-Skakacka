@@ -145,7 +145,7 @@ public class StatePanel extends JPanel implements GameStateManager, Runnable {
             paintScreen();
 
             afterTime = System.nanoTime();
-            timeDiff = beforeTime - afterTime;
+            timeDiff = afterTime - beforeTime;
             sleepTime = (period - timeDiff) - overSleepTime;
             if (sleepTime > 0) {
                 try {
