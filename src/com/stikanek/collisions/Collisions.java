@@ -57,11 +57,11 @@ public class Collisions {
         max.addTo(new Vec2(-1,-1));
         
         //get tiles in collision area
-        int firstTileX = map.worldCoordToTileX(min.getX());
-        int firstTileY = map.worldCoordToTileY(min.getY());
+        int firstTileX = Math.max(map.worldCoordToTileX(min.getX()), 0);
+        int firstTileY = Math.max(map.worldCoordToTileY(min.getY()), 0);
         
-        int lastTileX = map.worldCoordToTileX(max.getX());
-        int lastTileY = map.worldCoordToTileY(max.getY());
+        int lastTileX = Math.min(map.worldCoordToTileX(max.getX()), map.getColumnsInMap() - 1);
+        int lastTileY = Math.min(map.worldCoordToTileY(max.getY()), map.getRowsInMap() - 1);        
         
         //for all tiles in collision area
         for(int row = firstTileY; row <= lastTileY; row++){
