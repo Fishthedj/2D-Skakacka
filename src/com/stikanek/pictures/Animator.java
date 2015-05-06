@@ -38,6 +38,10 @@ public class Animator {
         }
     }
     
+    public boolean isInActiveDamageZone(){
+        return currentFrame > 2 && currentFrame < 8;
+    }
+    
     public void reset(){
         currentFrame = 0;
         timesPlayed = 0;

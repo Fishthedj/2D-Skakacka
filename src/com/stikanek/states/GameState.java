@@ -16,7 +16,9 @@ import com.stikanek.mainclasses.StatePanel;
 import com.stikanek.gameobjects.Player;
 import com.stikanek.gameobjects.Urzice;
 import com.stikanek.gravity.Gravity;
+import com.stikanek.pictures.Images;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -40,6 +42,7 @@ public class GameState implements State{
     private final ArrayList<MovingObject> movingObjects;
     private final Gravity gravity;
     private final ArrayList<Enemy> enemies;
+    private final ArrayList<Sign> signs;
     private final Urzice urzice;
     
     public GameState(StatePanel jpanel, int pWidth, int pHeight, Logger l){
@@ -62,6 +65,8 @@ public class GameState implements State{
         enemies = new ArrayList<>();
         urzice = new Urzice(new Vec2(pWidth / 2 + 150, 296), new Vec2(43,34));
         enemies.add(urzice);
+        signs = new ArrayList<>();
+        Images.setSubdirectoryPath("sprites/");
     }
     
     @Override
@@ -82,18 +87,18 @@ public class GameState implements State{
         int playerYOnMap = player.getYOnMap();
         for(Iterator<Enemy> iterator = enemies.iterator(); iterator.hasNext();){
             Enemy enemy = iterator.next();
-            if(enemy.isDead())
+            if(enemy.isDead() && player.hasPlayedAttackAnimationOnce())
                 iterator.remove();
         }
         enemies.stream().filter((e) -> (e.shouldBeDrawn(playerXOnMap, playerYOnMap, map.getMapWidth()))).forEach((e) -> {
             e.update();
-            System.out.println(player.getAttackingRectangle());
-            System.out.println(e.getCollisionRectangle());
-            if(player.canDealDamage() &&player.getAttackingRectangle().intersects(e.getCollisionRectangle())){
+            if(player.canDealDamage() && player.getAttackingRectangle().intersects(e.getCollisionRectangle())){
+                signs.add(new DamageSign(player.getXOnScreen() +50, player.getYOnScreen() - 10, Images.loadImage("20.gif"), 20));
                 player.setCanDealDamage(false);
                 e.receiveDamage(player.dealDamage());
             }
         });
+        signs.stream().forEach((s) -> {s.update();});
     }
     
     @Override
@@ -128,10 +133,13 @@ public class GameState implements State{
         int playerYOnMap = player.getYOnMap();        
         enemies.stream().filter((e) -> (e.shouldBeDrawn(playerXOnMap, playerYOnMap, map.getMapWidth()))).forEach((e) -> {
             e.draw((Graphics2D)dbg, player);
-        });//        if(gameOver){
-//            gameOverMessage(dbg);
-//        }    
+        });
+//        signs.stream().filter((s) -> s.shouldBeShown()).forEach((s) -> {s.draw((Graphics2D)dbg);});
+        signs.stream().filter((s) -> (s.shouldBeShown())).forEach((s) -> {
+            s.draw((Graphics2D)dbg);
+        });
     }
+    
     @Override
     public void paintScreen(){
         Graphics g;
@@ -180,5 +188,39 @@ public class GameState implements State{
             player.setUp(false);
         if(e.getKeyCode() == KeyEvent.VK_DOWN)
             player.setDown(false);       
+    }
+    
+    abstract class Sign{
+        private int xOnScreen;
+        private int yOnScreen;
+        private BufferedImage image;
+        private int count;
+        private boolean show = true;
+        
+        Sign(int xOnScreen, int yOnScreen, BufferedImage image, int count){
+            this.xOnScreen = xOnScreen;
+            this.yOnScreen = yOnScreen;
+            this.image = image;
+            this.count = count;
+        }
+        
+        void update(){
+            count--;
+            yOnScreen -= 2;
+        }
+        
+        boolean shouldBeShown(){
+            return count >= 0;
+        }
+        
+        void draw(Graphics2D g){
+            g.drawImage(image, xOnScreen, yOnScreen, 20, 20, null);
+        }
+    }
+    
+    class DamageSign extends Sign{
+        public DamageSign(int xOnScreen, int yOnScreen, BufferedImage image, int count){
+            super(xOnScreen, yOnScreen, image, count);
+        }
     }
 }

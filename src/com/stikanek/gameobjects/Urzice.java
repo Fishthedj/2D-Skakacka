@@ -20,7 +20,7 @@ public class Urzice extends StaticEnemy{
         urzaAnimator = new Animator();
         urzaAnimator.setFrames(standingUrzaFrames);
         urzaAnimator.setDelay(1);
-        hitpoints = hitpointsLeft = 40;
+        hitpoints = hitpointsLeft = 60;
     }
     
     @Override
@@ -36,7 +36,6 @@ public class Urzice extends StaticEnemy{
     
     @Override
     public void update(){
-        System.out.println(hitpointsLeft);
         urzaAnimator.update();
     }
     

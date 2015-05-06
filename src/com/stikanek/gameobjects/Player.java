@@ -2,7 +2,6 @@ package com.stikanek.gameobjects;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import com.stikanek.tiles.TileMap;
 import com.stikanek.pictures.Animator;
 import com.stikanek.pictures.Images;
 import com.stikanek.mainclasses.StatePanel;
@@ -249,7 +248,7 @@ public class Player extends MovingObject implements GravityAffectable{
     }
     
     public boolean canDealDamage(){
-        return canDealDamage;
+        return canDealDamage && (attackingRightAnimator.isInActiveDamageZone() || attackingLeftAnimator.isInActiveDamageZone());
     }
     
     public void setCanDealDamage(boolean value){
@@ -276,6 +275,10 @@ public class Player extends MovingObject implements GravityAffectable{
             g.fillRect(getXOnScreen() - ATTACKING_RECTANGLE_WIDTH, getYOnScreen() - ATTACKING_RECTANGLE_EXTRA_HEIGHT, 
                     ATTACKING_RECTANGLE_WIDTH, 2 * yHalfExtent + ATTACKING_RECTANGLE_EXTRA_HEIGHT);
         }
+    }
+    
+    public boolean hasPlayedAttackAnimationOnce(){
+        return attackingLeftAnimator.hasPlayedAnimationOnce() || attackingRightAnimator.hasPlayedAnimationOnce();
     }
     
     public void attack(){
